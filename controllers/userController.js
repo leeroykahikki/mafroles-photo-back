@@ -32,13 +32,13 @@ class UserController {
     const user = await User.findOne({ nickname });
 
     if (!user) {
-      return next(ApiError.internal('Пользователь не найден'));
+      return next(ApiError.badRequest('Пользователь не найден'));
     }
 
-    let comparePassword = bcrypt.compareSync(password, user.password);
+    const comparePassword = bcrypt.compareSync(password, user.password);
 
     if (!comparePassword) {
-      return next(ApiError.internal('Указан неверный пароль'));
+      return next(ApiError.badRequest('Указан неверный пароль'));
     }
 
     const token = generateJwt(user._id, user.nickname);
