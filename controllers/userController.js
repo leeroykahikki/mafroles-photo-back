@@ -1,7 +1,7 @@
 const ApiError = require('../error/ApiError');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { User } = require('../db/db');
+const { User } = require('../utils/db');
 
 const generateJwt = (id, nickname) => {
   return jwt.sign({ id, nickname }, process.env.SECRET_KEY, { expiresIn: '7d' });
