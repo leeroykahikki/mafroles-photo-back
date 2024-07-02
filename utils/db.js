@@ -35,6 +35,20 @@ const PlayerSchema = new Schema({
   ],
 });
 
+PlayerSchema.post('deleteOne', async function (next) {
+  const playerId = this.getQuery()['_id'];
+  const Tournament = mongoose.model('tournament');
+  const tournaments = await Tournament.find({ tournamentPlayers: { $in: [playerId] } });
+
+  tournaments.forEach(async (tournament) => {
+    tournament.tournamentPlayers = tournament.tournamentPlayers.filter((item) => {
+      return item.toString() !== playerId.toString();
+    });
+
+    await tournament.save();
+  });
+});
+
 const TournamentSchema = new Schema({
   tournamentName: {
     type: String,
@@ -48,9 +62,23 @@ const TournamentSchema = new Schema({
   ],
 });
 
-const User = mongoose.model('users', UserSchema);
-const Player = mongoose.model('players', PlayerSchema);
-const Tournament = mongoose.model('tournaments', TournamentSchema);
+TournamentSchema.post('deleteOne', async function (next) {
+  const tournamentId = this.getQuery()['_id'];
+  const Player = mongoose.model('player');
+  const players = await Player.find({ tournaments: { $in: [tournamentId] } });
+
+  players.forEach(async (player) => {
+    player.tournaments = player.tournaments.filter((item) => {
+      return item.toString() !== tournamentId.toString();
+    });
+
+    await player.save();
+  });
+});
+
+const User = mongoose.model('user', UserSchema);
+const Player = mongoose.model('player', PlayerSchema);
+const Tournament = mongoose.model('tournament', TournamentSchema);
 
 module.exports = {
   dbconnect,
