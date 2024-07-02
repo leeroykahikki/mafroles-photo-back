@@ -4,6 +4,7 @@ const cors = require('cors');
 const router = require('./routes/index');
 const errorHandler = require('./middleware/ErrorHandlingMiddleware');
 const path = require('path');
+const dbConnect = require('./db/dbconnection');
 
 const PORT = process.env.PORT || 5000;
 
@@ -24,6 +25,7 @@ app.use(errorHandler);
 const start = () => {
   try {
     app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+    dbConnect();
   } catch (e) {
     console.log(e);
   }
