@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const { User } = require('../utils/db');
 
 const generateJwt = (id, nickname) => {
-  return jwt.sign({ id, nickname }, process.env.SECRET_KEY, { expiresIn: '7d' });
+  return jwt.sign({ id, nickname }, process.env.SECRET_KEY, { expiresIn: '24h' });
 };
 
 class UserController {
@@ -23,6 +23,13 @@ class UserController {
     const hashPassword = await bcrypt.hash(password, 5);
     const user = await User.create({ nickname, password: hashPassword });
     const token = generateJwt(user._id, user.nickname);
+
+    user.tokenHash = token;
+    const userNew = await user.save();
+
+    if (userNew !== user) {
+      return next(ApiError.internal('Произошла ошибка при сохранении токена'));
+    }
 
     return res.json({ token });
   }
@@ -43,11 +50,32 @@ class UserController {
 
     const token = generateJwt(user._id, user.nickname);
 
+    user.tokenHash = token;
+    const userNew = await user.save();
+
+    if (userNew !== user) {
+      return next(ApiError.internal('Произошла ошибка при сохранении токена'));
+    }
+
     return res.json({ token });
   }
 
   async check(req, res, next) {
-    const token = generateJwt(req.user.id, req.user.nickname);
+    const user = await User.findOne({ nickname: req.user.nickname });
+
+    if (!user) {
+      return next(ApiError.badRequest('Пользователь не найден'));
+    }
+
+    const token = generateJwt(user._id, user.nickname);
+
+    user.tokenHash = token;
+    const userNew = await user.save();
+
+    if (userNew !== user) {
+      return next(ApiError.internal('Произошла ошибка при сохранении токена'));
+    }
+
     return res.json({ token });
   }
 }

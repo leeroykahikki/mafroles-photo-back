@@ -17,6 +17,9 @@ const UserSchema = new Schema({
     type: String,
     required: true,
   },
+  tokenHash: {
+    type: String,
+  },
 });
 
 const PlayerSchema = new Schema({
