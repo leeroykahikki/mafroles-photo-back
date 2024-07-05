@@ -60,6 +60,23 @@ class UserController {
     return res.json({ token });
   }
 
+  async logout(req, res, next) {
+    const user = await User.findOne({ nickname: req.user.nickname });
+
+    if (!user) {
+      return next(ApiError.badRequest('Пользователь не найден'));
+    }
+
+    user.tokenHash = '';
+    const userNew = await user.save();
+
+    if (userNew !== user) {
+      return next(ApiError.internal('Произошла ошибка при сохранении токена'));
+    }
+
+    return res.json({ message: 'Пользователь успешно разлогинен' });
+  }
+
   async check(req, res, next) {
     const user = await User.findOne({ nickname: req.user.nickname });
 
